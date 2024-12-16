@@ -4,7 +4,7 @@ const {login,signup,alluser} = require('../controller/userController.js');
 
 userRouter.post('/signup',signup);
 userRouter.post('/login',login);
-userRouter.get('/all',alluser);
+userRouter.post('/all',alluser);
 
 
 module.exports = userRouter;

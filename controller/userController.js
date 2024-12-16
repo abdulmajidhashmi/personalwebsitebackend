@@ -48,14 +48,29 @@ console.log(err);
 }
 
 const alluser = async(req,res)=>{
-
+    const body =req.body;
 
     try{
+        const admindata = await userModel.findOne({role:"admin"});
+        console.log(admindata);
+        //this login for checking admin is not secure please change this later
+if(body.number===admindata.number){
 
-            const alluserdata = await userModel.find();
-            console.log(alluserdata);
+    const alluserdata = await userModel.find();
+    console.log("lets check",alluserdata);
 
-            res.send({success:true,message:"data fetched",data:alluserdata});
+   return  res.send({success:true,message:"data fetched",data:alluserdata});
+
+}else{
+
+    const obj=[{
+        name:"Doctor",
+        number:admindata.number,
+    }]
+
+    res.send({success:true,message:"data fetched",data:obj});
+
+}
     }
     catch(err){
         console.log(err);
