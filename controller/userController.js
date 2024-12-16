@@ -47,4 +47,21 @@ console.log(err);
 }
 }
 
-module.exports ={signup,login};
+const alluser = async(req,res)=>{
+
+
+    try{
+
+            const alluserdata = await userModel.find();
+            console.log(alluserdata);
+
+            res.send({success:true,message:"data fetched",data:alluserdata});
+    }
+    catch(err){
+        console.log(err);
+        return res.send({message:"Internal server error",success:false,data:err});
+
+    }
+
+}
+module.exports ={signup,login,alluser};
