@@ -16,7 +16,7 @@ const cors = require("cors");
 const io = new Server(server,{
 
   cors:{
-    origin:['http://localhost:3000',"https://personalwebsite-omega-two.vercel.app/"],
+    origin:['http://localhost:3000',"https://personalwebsite-omega-two.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   }
 });
@@ -51,7 +51,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://personalwebsite-omega-two.vercel.app/",
+      "https://personalwebsite-omega-two.vercel.app",
     ], // Allow only this origin
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"], // Allow all common HTTP methods
     optionsSuccessStatus: 200, // For legacy browsers
