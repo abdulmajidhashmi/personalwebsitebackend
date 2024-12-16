@@ -1,11 +1,11 @@
-<<<<<<< HEAD
-{
-=======
+
+
+
 {"scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
   "start": "nodemon server.js"
 },
->>>>>>> aeb586711182b5fc90c5edfc81d313dda4f838a8
+
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
