@@ -36,9 +36,14 @@ io.on('connection',(socket)=>{
   })
 
   socket.on('sendMessage',({touserId,message})=>{
-    console.log(io.sockets.adapter.rooms);
+    // console.log(io.sockets.adapter.rooms);
+
+ 
+      
+      const recipientSocketId = userSocketMap[touserId];
+
     console.log(touserId,message);
-    const recipientSocketId = userSocketMap[touserId];
+    
     
 
     io.to(recipientSocketId).emit('recieveMessage',{message});
