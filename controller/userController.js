@@ -52,12 +52,12 @@ const alluser = async(req,res)=>{
 
     try{
         const admindata = await userModel.findOne({role:"admin"});
-        console.log(admindata);
+        // console.log(admindata);
         //this login for checking admin is not secure please change this later
 if(body.number===admindata.number){
 
     const alluserdata = await userModel.find();
-    console.log("lets check",alluserdata);
+    // console.log("lets check",alluserdata);
 
    return  res.send({success:true,message:"data fetched",data:alluserdata});
 

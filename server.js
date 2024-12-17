@@ -21,22 +21,44 @@ const io = new Server(server,{
   }
 });
 
+// Disconnect all clients and clear all rooms
+// io.sockets.sockets.forEach(socket => {
+//   socket.disconnect(true);  // Disconnect each socket
+// });
 
 
 io.on('connection',(socket)=>{
   
 
-  socket.on('joinRoom',(userId)=>{
-   
+  socket.on("joinRoom",(userId,room)=>{
+   const rooms = Object.keys(socket.rooms);
+    if (!rooms.includes(room)) {
+    socket.join(room);
     console.log(userId);
-    socket.join(userId);
+    
      userSocketMap[userId] = socket.id; 
     
     
+      const status = "online";
+      io.to(room).emit("isOnline",{userId,status});
+    }
   })
 
+
+
+socket.on('leaveRoom',(userId,room)=>{
+  console.log("room uck",userId,room);
+  const status = "offline"
+  io.to(room).emit('userLeft',{userId,status});
+socket.leave(room);
+
+
+
+})
+  
+
   socket.on('sendMessage',({touserId,message})=>{
-    // console.log(io.sockets.adapter.rooms);
+    console.log(io.sockets.adapter.rooms);
 
  
       
@@ -49,6 +71,19 @@ io.on('connection',(socket)=>{
     io.to(recipientSocketId).emit('recieveMessage',{message});
 
   })
+  socket.on('disconnect', () => {
+    // Remove user from the map when they disconnect
+    
+    console.log(socket.id)
+    for (let userId in userSocketMap) {
+      if (userSocketMap[userId] === socket.id) {
+       
+        delete userSocketMap[userId];
+        console.log(`User with ID ${userId} disconnected`);
+        break;
+      }
+    }
+  });
 
 })
 
