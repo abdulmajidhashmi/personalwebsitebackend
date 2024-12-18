@@ -63,10 +63,10 @@ if(body.number===admindata.number){
 
 }else{
 
-    const obj=[{
+    const obj={
         name:"Doctor",
         number:admindata.number,
-    }]
+    }
 
     res.send({success:true,message:"data fetched",data:obj});
 
