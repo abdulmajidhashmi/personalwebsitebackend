@@ -79,4 +79,20 @@ if(body.number===admindata.number){
     }
 
 }
-module.exports ={signup,login,alluser};
+
+
+const oneuserdetail =async(req,res)=>{
+
+const body=req.body
+    try{
+console.log("hi",body);
+       const data= await userModel.findOne({number:body.id});
+
+       res.send({message:"user fetched",success:true,data:data.name});
+
+    }catch(err){
+
+        return res.send({message:"Internal server error",success:false,data:err});
+    }
+}
+module.exports ={signup,login,alluser,oneuserdetail};
