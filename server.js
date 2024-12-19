@@ -7,6 +7,7 @@ const dbconnect = require("./config/db.js");
 require("dotenv").config();
 const PORT = process.env.PORT;
 dbconnect();
+const mapping = {};
 
 app.use(express.json());
 const cors = require("cors");
@@ -26,10 +27,18 @@ io.on("connection", (socket) => {
   // io.sockets.sockets.forEach(socket => {
   //   socket.disconnect(true);  // Disconnect each socket
   // });
-  socket.on("joinRoom", (userId) => {
+  socket.on("joinRoom", ({selfid,userId}) => {
+    mapping[socket.id] = selfid;
+    console.log(mapping[socket.id]);
     console.log(userId);
     socket.join(userId);
     console.log(io.sockets.adapter.rooms);
+    const status ='online';
+    const who =mapping[socket.id];
+    const room = io.sockets.adapter.rooms.get(userId);
+    if (room && room.size > 1) {
+    io.to(userId).emit('status',{who,status});}
+   
   });
 
   
@@ -42,8 +51,27 @@ io.on("connection", (socket) => {
   });
   socket.on("disconnect", (reason) => {
     console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
-    // Perform any cleanup here, like removing the user from active lists
+   console.log(mapping[socket.id]);
+
+   const m = mapping[socket.id];
+   const room =String(m);
+   const status ="offline";
+  //  socket.to(room).emit("status",status);
+   const who =mapping[socket.id];
+   io.to(room).emit('status',{who,status});
+    
+    
   });
+  socket.on('leaveRoom',({localnumber,status})=>{
+console.log('okay');
+console.log(localnumber);
+localnumber =String(localnumber);
+    
+    // socket.to(localnumber).emit('status',status);
+    const who =mapping[socket.id];
+    io.to(localnumber).emit('status',{localnumber,status});
+    
+  })
 
 });
 
