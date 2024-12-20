@@ -34,7 +34,13 @@ io.on("connection", (socket) => {
     }
     console.log(mapping[socket.id]);
     console.log(userId);
-    socket.join(userId);
+    
+
+    const rooms = Array.from(socket.rooms);
+    if (!rooms.includes(userId)) {
+      socket.join(userId);
+    }
+
     console.log(io.sockets.adapter.rooms);
     const status ='online';
     const who =mapping[socket.id];
