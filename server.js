@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
     const status ='online';
     const who =mapping[socket.id];
     const room = io.sockets.adapter.rooms.get(userId);
-    if (room && room.size > 1) {
+    if (room && room.size ===2 ) {
     io.to(userId).emit('status',{who,status});}
    
   });
