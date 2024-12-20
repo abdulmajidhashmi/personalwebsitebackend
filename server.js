@@ -28,7 +28,10 @@ io.on("connection", (socket) => {
   //   socket.disconnect(true);  // Disconnect each socket
   // });
   socket.on("joinRoom", ({selfid,userId}) => {
-    mapping[socket.id] = selfid;
+
+    if (!mapping[socket.id]) {
+      mapping[socket.id] = selfid;
+    }
     console.log(mapping[socket.id]);
     console.log(userId);
     socket.join(userId);
