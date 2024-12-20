@@ -55,8 +55,9 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (reason) => {
     console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
    console.log(mapping[socket.id]);
-
+   
    const m = mapping[socket.id];
+   delete mapping[socket.id];
    const room =String(m);
    const status ="offline";
   //  socket.to(room).emit("status",status);
