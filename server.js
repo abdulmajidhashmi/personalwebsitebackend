@@ -7,7 +7,7 @@ const dbconnect = require("./config/db.js");
 require("dotenv").config();
 const PORT = process.env.PORT;
 dbconnect();
-const mapping = {};
+
 
 app.use(express.json());
 const cors = require("cors");
@@ -29,10 +29,7 @@ io.on("connection", (socket) => {
   // });
   socket.on("joinRoom", ({selfid,userId}) => {
 
-    if (!mapping[socket.id]) {
-      mapping[socket.id] = selfid;
-    }
-    console.log(mapping[socket.id]);
+ 
     console.log(userId);
     
 
@@ -43,32 +40,49 @@ io.on("connection", (socket) => {
 
     console.log(io.sockets.adapter.rooms);
     const status ='online';
-    const who =mapping[socket.id];
-    const room = io.sockets.adapter.rooms.get(userId);
-    if (room && room.size >1 ) {
-    io.to(userId).emit('status',{who,status});}
+    const who = socket.id;
+    
+    io.to(userId).emit('status',{who,status});
+
+
+
+    
    
   });
 
   
 
   socket.on("sendMessage", ({ use, msg }) => {
-
+console.log(use);
     const message = msg;
     console.log(use, message);
-    socket.to(use).emit("recieveMessage", { message });
+    // socket.to(use).emit("recieveMessage", { message });
+
+  use=String(use);
+      
+
+
+  if (!io.sockets.sockets.has(use)) {
+    console.log(`Sending message to custom room: ${use}`);
+    socket.to(use).emit("recieveMessage", { message:msg });
+  } else {
+    console.log("The provided room name is a default room or invalid.");
+  }
+     
+
+
+    
   });
   socket.on("disconnect", (reason) => {
     console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
-   console.log(mapping[socket.id]);
    
-   const m = mapping[socket.id];
-   delete mapping[socket.id];
-   const room =String(m);
+   
+  
+  
    const status ="offline";
   //  socket.to(room).emit("status",status);
-   const who =mapping[socket.id];
-   io.to(room).emit('status',{who,status});
+   const who =socket.id;
+  //  io.to(room).emit('status',{who,status});
     
     
   });
@@ -78,7 +92,7 @@ console.log(localnumber);
 localnumber =String(localnumber);
     
     // socket.to(localnumber).emit('status',status);
-    const who =mapping[socket.id];
+    
     io.to(localnumber).emit('status',{localnumber,status});
     
   })
