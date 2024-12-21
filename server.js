@@ -1,16 +1,28 @@
 const express = require("express");
-const app = express();
-const { Server } = require("socket.io");
 const http = require("http");
-const server = http.createServer(app);
+const { Server } = require("socket.io");
+const cors = require("cors");
+const dotenv = require("dotenv");
 const dbconnect = require("./config/db.js");
-require("dotenv").config();
-const PORT = process.env.PORT;
+const userRouter = require("./routes/userRouter.js");
+
+dotenv.config();
+
+const app = express();
+const server = http.createServer(app);
+const PORT = process.env.PORT || 3000;
+
 dbconnect();
 
-
 app.use(express.json());
-const cors = require("cors");
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://personalwebsite-1vr8.onrender.com"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+  optionsSuccessStatus: 200,
+}));
 
 const io = new Server(server, {
   cors: {
@@ -23,100 +35,40 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  
-  // io.sockets.sockets.forEach(socket => {
-  //   socket.disconnect(true);  // Disconnect each socket
-  // });
-  socket.on("joinRoom", ({selfid,userId}) => {
-
- 
-    console.log(userId);
-    
-
-    const rooms = Array.from(socket.rooms);
-    if (!rooms.includes(userId)) {
-      socket.join(userId);
-    }
-
-    console.log(io.sockets.adapter.rooms);
-    const status ='online';
-    const who = socket.id;
-    
-    io.to(userId).emit('status',{who,status});
-
-
-
-    
-   
-  });
+  const customRoom = socket.handshake.query.roomName;
+  socket.join(customRoom);
 
   
 
   socket.on("sendMessage", ({ use, msg }) => {
-console.log(use);
-    const message = msg;
-    console.log(use, message);
-    // socket.to(use).emit("recieveMessage", { message });
+    const roomName = String(use);
+    socket.to(roomName).emit("recieveMessage", { message: msg });
 
-  use=String(use);
-      
-
-
-  if (!io.sockets.sockets.has(use)) {
-    console.log(`Sending message to custom room: ${use}`);
-    socket.to(use).emit("recieveMessage", { message:msg });
-  } else {
-    console.log("The provided room name is a default room or invalid.");
-  }
-     
-
-
-    
+    if (!io.sockets.sockets.has(roomName)) {
+      console.log(`Message sent to custom room: ${roomName}`);
+    } else {
+      console.log("The provided room name is a default room or invalid.");
+    }
   });
+
+  socket.on("leaveRoom", ({ localnumber, status }) => {
+    const roomName = String(localnumber);
+    io.to(roomName).emit("status", { localnumber, status });
+  });
+
   socket.on("disconnect", (reason) => {
     console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
-   
-   
-  
-  
-   const status ="offline";
-  //  socket.to(room).emit("status",status);
-   const who =socket.id;
-  //  io.to(room).emit('status',{who,status});
-    
-    
+    const status = "offline";
+    io.to(customRoom).emit("status", { user: socket.id, status });
   });
-  socket.on('leaveRoom',({localnumber,status})=>{
-console.log('okay');
-console.log(localnumber);
-localnumber =String(localnumber);
-    
-    // socket.to(localnumber).emit('status',status);
-    
-    io.to(localnumber).emit('status',{localnumber,status});
-    
-  })
-
 });
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://personalwebsite-1vr8.onrender.com",
-    ], // Allow only this origin
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"], // Allow all common HTTP methods
-    optionsSuccessStatus: 200, // For legacy browsers
-  })
-);
-
-const userRouter = require("./routes/userRouter.js");
-
 app.use("/user", userRouter);
+
 app.get("/", (req, res) => {
-  res.send("hi");
+  res.send("Server is running");
 });
 
 server.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
