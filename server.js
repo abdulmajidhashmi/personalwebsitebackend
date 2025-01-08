@@ -5,6 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const dbconnect = require("./config/db.js");
 const userRouter = require("./routes/userRouter.js");
+const patientRouter = require("./routes/patientRouter.js");
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ io.on("connection", (socket) => {
 });
 
 app.use("/user", userRouter);
+app.use("/patient",patientRouter);
 
 app.get("/", (req, res) => {
   res.send("Server is running");
