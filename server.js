@@ -11,6 +11,7 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const { v4: uuidV4 } = require("uuid");
 const PORT = process.env.PORT || 3000;
 
 dbconnect();
@@ -36,20 +37,26 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  const customRoom = socket.handshake.query.roomName;
+  console.log(`New user connected: ${socket.id}`);
+
+  // Handle joining the room
+  socket.on("join-room", ({ roomId, userId }) => {
+    socket.join(roomId);
+    socket.broadcast.to(roomId).emit("user-connected", userId);
+
+    socket.on("disconnect", () => {
+      socket.broadcast.to(roomId).emit("user-disconnected", userId);
+    });
+  });
+
+  // Handle custom room for chat
+  const customRoom = socket.handshake.query.roomName || uuidV4(); // Use UUID if no roomName provided
   socket.join(customRoom);
 
-  
-
   socket.on("sendMessage", ({ use, msg }) => {
-    const roomName = String(use);
+    const roomName = use || customRoom;
     socket.to(roomName).emit("recieveMessage", { message: msg });
-
-    if (!io.sockets.sockets.has(roomName)) {
-      console.log(`Message sent to custom room: ${roomName}`);
-    } else {
-      console.log("The provided room name is a default room or invalid.");
-    }
+    console.log(`Message sent to room: ${roomName}`);
   });
 
   socket.on("leaveRoom", ({ localnumber, status }) => {
@@ -59,13 +66,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", (reason) => {
     console.log(`User disconnected: ${socket.id}, Reason: ${reason}`);
-    const status = "offline";
-    io.to(customRoom).emit("status", { user: socket.id, status });
+    io.to(customRoom).emit("status", { user: socket.id, status: "offline" });
   });
 });
 
 app.use("/user", userRouter);
-app.use("/patient",patientRouter);
+app.use("/patient", patientRouter);
 
 app.get("/", (req, res) => {
   res.send("Server is running");
