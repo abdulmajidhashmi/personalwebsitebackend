@@ -24,6 +24,7 @@ app.use(cors({
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   optionsSuccessStatus: 200,
+  credentials: true,
 }));
 
 const io = new Server(server, {
@@ -33,6 +34,7 @@ const io = new Server(server, {
       "https://personalwebsite-1vr8.onrender.com/",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+    credentials: true,
   },
 });
 
