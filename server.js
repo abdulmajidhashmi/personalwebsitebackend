@@ -30,7 +30,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://personalwebsite-1vr8.onrender.com",
+      "https://personalwebsite-1vr8.onrender.com/",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   },
