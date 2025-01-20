@@ -49,7 +49,7 @@ const login = async (req, res) => {
 
             maxAge: 2592000000,
             httpOnly:true,
-            secure:process.env.SECURITY,
+            secure:true,
         })
       return res.send({ message: "user found", success: true, data: "token send" });
     } else if (data.number !== number || data.password !== password) {
