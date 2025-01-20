@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 const dbconnect = require("./config/db.js");
 const userRouter = require("./routes/userRouter.js");
 const patientRouter = require("./routes/patientRouter.js");
+const cookieParser  =require('cookie-parser');
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 dbconnect();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
   origin: [
     "http://localhost:3000",
