@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const path=require('path');
 const cors = require("cors");
 const dotenv = require("dotenv");
 const dbconnect = require("./config/db.js");
@@ -18,6 +19,9 @@ const PORT = process.env.PORT || 3000;
 dbconnect();
 
 app.use(express.json());
+const _dirname = path.dirname("");
+const buildpath = path.join(_dirname,'../my-app/build');
+app.use(express.static(buildpath));
 app.use(cookieParser());
 app.use(cors({
   origin: [
