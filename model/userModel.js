@@ -6,29 +6,29 @@ const userSchema = mongoose.Schema({
 
     name:{
 
-        require:true,
+        required:true,
         type:String
     },
     number:{
 
-        require:true,
+        required:true,
         type:Number,
         unique:true
     }
     ,password:{
 
-        require:true,
+        required:true,
         type:String
     },
     confirmPassword:{
 
-        require:true,
+        required:true,
         type:String,
         
         
     },
     role:{
-        require:true,
+        required:true,
         type:String,
         default:"user"
 

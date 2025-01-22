@@ -1,3 +1,4 @@
+const appointmentModel = require("../model/AppointmentModel");
 const userModel = require("../model/userModel");
 const jwt = require('jsonwebtoken');
 //signup logic 
@@ -154,4 +155,23 @@ const adminData = async(req,res)=>{
     });
   }
 }
-module.exports = { signup, login, alluser, oneuserdetail,selfDetail,adminData };
+
+
+const allAdminData=async(req,res)=>{
+
+  try{
+
+   const appointmentdata =await appointmentModel.find().populate('user','name number');
+  
+res.send({success:true,message:"data fetched",data:appointmentdata});
+  }
+  catch(err){
+
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+}
+module.exports = { signup, login, alluser, oneuserdetail,selfDetail,adminData ,allAdminData};
