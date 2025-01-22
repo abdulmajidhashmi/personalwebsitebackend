@@ -19,8 +19,7 @@ const PORT = process.env.PORT || 3000;
 dbconnect();
 
 app.use(express.json());
-const _dirname = path.dirname("");
-const buildpath = path.join(_dirname,'../my-app/build');
+const buildpath = path.join(__dirname,'../my-app/build');
 app.use(express.static(buildpath));
 app.use(cookieParser());
 app.use(cors({
