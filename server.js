@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 const { v4: uuidV4 } = require("uuid");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 dbconnect();
 
@@ -25,10 +25,11 @@ app.use(cookieParser());
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://personalwebsite-1vr8.onrender.com"
+    "https://personalwebsite-1vr8.onrender.com",
+    "http://localhost:4020",
+    "http://13.71.43.117:4020",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
-  optionsSuccessStatus: 200,
   credentials: true,
 }));
 
@@ -37,6 +38,8 @@ const io = new Server(server, {
     origin: [
       "http://localhost:3000",
       "https://personalwebsite-1vr8.onrender.com",
+      "http://localhost:4020",
+      "http://13.71.43.117:4020",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
     credentials: true,
