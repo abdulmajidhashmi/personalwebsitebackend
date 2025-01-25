@@ -18,6 +18,11 @@ const PORT = process.env.PORT;
 
 dbconnect();
 
+app.use((req,res,next)=>{
+  req.url = req.url.replace(/^\/[^\/]+/, '');
+  next();
+})
+
 app.use(express.json());
 const buildpath = path.join(__dirname,'../my-app/build');
 app.use(express.static(buildpath));
@@ -25,9 +30,9 @@ app.use(cookieParser());
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://personalwebsite-1vr8.onrender.com",
     "http://localhost:4020",
-    "http://4.213.176.68:4020",
+    "https://personalwebsite-1vr8.onrender.com",
+    "https://zahidhashmi.centralindia.cloudapp.azure.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
   credentials: true,
@@ -37,9 +42,9 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      "https://personalwebsite-1vr8.onrender.com",
       "http://localhost:4020",
-      "http://4.213.176.68:4020",
+      "https://personalwebsite-1vr8.onrender.com",
+      "https://zahidhashmi.centralindia.cloudapp.azure.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
     credentials: true,
