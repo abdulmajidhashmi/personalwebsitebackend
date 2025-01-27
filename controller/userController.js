@@ -1,7 +1,7 @@
 const appointmentModel = require("../model/AppointmentModel");
 const userModel = require("../model/userModel");
-const jwt = require('jsonwebtoken');
-//signup logic 
+const jwt = require("jsonwebtoken");
+//signup logic
 const signup = async (req, res) => {
   const { confirmPassword, ...body } = req.body;
 
@@ -13,15 +13,16 @@ const signup = async (req, res) => {
         data: "password do not match",
       });
     }
-    const token = jwt.sign({number:body.number},process.env.SECRET_KEY,{expiresIn:'30d'});
+    const token = jwt.sign({ number: body.number }, process.env.SECRET_KEY, {
+      expiresIn: "30d",
+    });
     const data = new userModel(body);
     await data.save();
-    res.cookie('authToken',token,{
-
-        httpOnly:true,
-        secure:process.env.SECURITY,
-        maxAge: 2592000000,
-    })
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.SECURITY,
+      maxAge: 2592000000,
+    });
     res.send({
       success: true,
       message: "user registered succesfully",
@@ -33,27 +34,28 @@ const signup = async (req, res) => {
   }
 };
 
-
 const login = async (req, res) => {
   const { number, password } = req.body;
 
   try {
-
-   
     const data = await userModel.findOne({ number });
     console.log(data);
 
     if (data.number === number && data.password === password) {
-
-        const token = jwt.sign({number:number},process.env.SECRET_KEY,{expiresIn:'30d'});
-        res.cookie('authToken',token,{
-
-            maxAge: 2592000000,
-            httpOnly:true,
-            secure:true,
-            sameSite:'None'
-        })
-      return res.send({ message: "user found", success: true, data: "token send" });
+      const token = jwt.sign({ number: number }, process.env.SECRET_KEY, {
+        expiresIn: "30d",
+      });
+      res.cookie("authToken", token, {
+        maxAge: 2592000000,
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+      return res.send({
+        message: "user found",
+        success: true,
+        data: "token send",
+      });
     } else if (data.number !== number || data.password !== password) {
       return res.send({
         message: "user not found",
@@ -75,11 +77,15 @@ const alluser = async (req, res) => {
   const body = req.cook;
 
   try {
-    const admindata = await userModel.findOne({ role: "admin" }).select('-password');
+    const admindata = await userModel
+      .findOne({ role: "admin" })
+      .select("-password");
     // console.log(admindata);
     //this login for checking admin is not secure please change this later
     if (body.number === admindata.number) {
-      const alluserdata = await userModel.find({role:"user"}).select('-password');
+      const alluserdata = await userModel
+        .find({ role: "user" })
+        .select("-password");
       // console.log("lets check",alluserdata);
 
       return res.send({
@@ -88,8 +94,6 @@ const alluser = async (req, res) => {
         data: alluserdata,
       });
     } else {
-      
-
       res.send({ success: true, message: "data fetched", data: admindata });
     }
   } catch (err) {
@@ -107,7 +111,7 @@ const oneuserdetail = async (req, res) => {
   console.log(body);
   try {
     const data = await userModel.findOne({ number: body.number });
-console.log(data);
+
     res.send({ message: "user fetched", success: true, data: data.name });
   } catch (err) {
     return res.send({
@@ -118,60 +122,66 @@ console.log(data);
   }
 };
 
-const selfDetail = async (req,res)=>{
+const selfDetail = async (req, res) => {
+  const body = req.cook;
 
-const body  =req.cook;
+  try {
+    const userData = await userModel.findOne({ number: body.number });
 
-
-try{
-  const userData = await userModel.findOne({number:body.number});
-
-  res.send({success:true,message:"user data fethched",data:userData});
-
-}catch(err){
-  return res.send({
-    message: "Internal server error",
-    success: false,
-    data: err,
-  });
-
-}
-}
-
-
-const adminData = async(req,res)=>{
-
-  try{
-
-    const adminData = await userModel.findOne({role:'admin'}).select('-password');
-    res.send({success:true,message:"user data fetched",data:adminData});
-
-  }catch(err){
-
+    res.send({ success: true, message: "user data fethched", data: userData });
+  } catch (err) {
     return res.send({
       message: "Internal server error",
       success: false,
       data: err,
     });
   }
-}
+};
 
-
-const allAdminData=async(req,res)=>{
-
-  try{
-
-   const appointmentdata =await appointmentModel.find().populate('user','name number');
-  
-res.send({success:true,message:"data fetched",data:appointmentdata});
-  }
-  catch(err){
-
+const adminData = async (req, res) => {
+  try {
+    const adminData = await userModel
+      .findOne({ role: "admin" })
+      .select("-password");
+    res.send({ success: true, message: "user data fetched", data: adminData });
+  } catch (err) {
     return res.send({
       message: "Internal server error",
       success: false,
       data: err,
     });
   }
-}
-module.exports = { signup, login, alluser, oneuserdetail,selfDetail,adminData ,allAdminData};
+};
+
+const allAdminData = async (req, res) => {
+  try {
+    const appointmentdata = await appointmentModel
+      .find()
+      .populate("user", "name number");
+    const totalpatientdata = await userModel
+      .find({ role: "user" })
+      .select("-password");
+
+    const dataObj = {
+      totalpatientdata: totalpatientdata,
+      appointmentdata: appointmentdata,
+    };
+
+    res.send({ success: true, message: "data fetched", data: dataObj });
+  } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+};
+module.exports = {
+  signup,
+  login,
+  alluser,
+  oneuserdetail,
+  selfDetail,
+  adminData,
+  allAdminData,
+};

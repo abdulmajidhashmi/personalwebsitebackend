@@ -22,7 +22,7 @@ const userSchema = mongoose.Schema({
     },
     confirmPassword:{
 
-        required:true,
+        
         type:String,
         
         
@@ -33,7 +33,7 @@ const userSchema = mongoose.Schema({
         default:"user"
 
     }
-})
+},{timestamps:true})
 
 const userModel  =mongoose.model("user",userSchema);
 

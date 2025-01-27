@@ -8,7 +8,6 @@ const dbconnect = require("./config/db.js");
 const userRouter = require("./routes/userRouter.js");
 const patientRouter = require("./routes/patientRouter.js");
 const cookieParser  =require('cookie-parser');
-
 dotenv.config();
 
 const app = express();
@@ -18,14 +17,14 @@ const PORT = process.env.PORT;
 
 dbconnect();
 
-app.use((req,res,next)=>{
-  req.url = req.url.replace(/^\/[^\/]+/, '');
-  next();
-})
+// app.use((req,res,next)=>{
+//   req.url = req.url.replace(/^\/[^\/]+/, '');
+//   next();
+// })
 
 app.use(express.json());
-const buildpath = path.join(__dirname,'../my-app/build');
-app.use(express.static(buildpath));
+// const buildpath = path.join(__dirname,'../my-app/build');
+// app.use(express.static(buildpath));
 app.use(cookieParser());
 app.use(cors({
   origin: [
