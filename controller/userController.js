@@ -126,7 +126,7 @@ const selfDetail = async (req, res) => {
   const body = req.cook;
 
   try {
-    const userData = await userModel.findOne({ number: body.number });
+    const userData = await userModel.findOne({ number: body.number }).select("-password");
 
     res.send({ success: true, message: "user data fethched", data: userData });
   } catch (err) {
