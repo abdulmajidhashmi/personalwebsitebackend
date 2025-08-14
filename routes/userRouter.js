@@ -1,12 +1,22 @@
 const express  =require('express');
+const rateLimit = require('express-rate-limit');
 const userRouter = express.Router();
-const {login,signup,alluser,oneuserdetail, selfDetail, adminData, allAdminData} = require('../controller/userController.js');
+const {login,signup,alluser,oneuserdetail, selfDetail, adminData, allAdminData, loginWithOtp, loginVerifyWithOtp} = require('../controller/userController.js');
 const verifyToken = require('../middlewares/verifyToken.js');
 const authenticateToken = require('../middlewares/authentication/authenticateToken.js');
 const verifyAdmin = require('../middlewares/authentication/verifyAdmin.js');
 
+
+const sendOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2,
+  message: { success: false, message: 'Too many OTP requests, please try again later.' }
+});
+
 userRouter.post('/signup',signup);
 userRouter.post('/login',login);
+userRouter.post('/loginWithOtp',sendOtpLimiter,loginWithOtp);
+userRouter.post('/loginVerifyWithOtp',loginVerifyWithOtp);
 userRouter.get('/all',verifyToken,alluser);
 userRouter.post('/oneuserdetail',verifyToken,oneuserdetail);
 userRouter.get('/check-token',authenticateToken);

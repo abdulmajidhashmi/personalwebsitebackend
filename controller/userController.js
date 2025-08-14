@@ -1,10 +1,18 @@
 const appointmentModel = require("../model/AppointmentModel");
 const userModel = require("../model/userModel");
 const jwt = require("jsonwebtoken");
+const userUpdatedModel = require("../model/userUpdatedModel");
+const axiosInstance = require('axios');
+const crypto = require('crypto');
+
+const OTP_API_KEY = process.env.TWOFACTOR_API_KEY;
+const OTP_BASE_URL = process.env.TWOFACTOR_BASE_URL;
+const OTP_SENDER_ID = process.env.TWOFACTOR_SENDER_ID;
+
+
 //signup logic
 const signup = async (req, res) => {
   const { confirmPassword, ...body } = req.body;
-
   try {
     if (body.password !== confirmPassword) {
       return res.send({
@@ -176,6 +184,121 @@ const allAdminData = async (req, res) => {
     });
   }
 };
+
+
+const loginWithOtp = async (req, res) => {
+
+  try {
+    const { number } = req.body;
+
+    function generateSecureOTP(length = 6) {
+      const max = Math.pow(10, length) - 1;
+      const min = Math.pow(10, length - 1);
+      const range = max - min + 1;
+
+      let randomBytes;
+      let randomValue;
+
+      do {
+        randomBytes = crypto.randomBytes(4);
+        randomValue = randomBytes.readUInt32BE(0);
+      } while (randomValue >= Math.floor(0x100000000 / range) * range);
+
+      return (min + (randomValue % range)).toString();
+    }
+
+    if (!number) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    // Validate phone number
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(number)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number. Enter 10-digit Indian mobile number'
+      });
+    }
+
+    const otp = generateSecureOTP(6);
+
+    const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${number}/${otp}/OTP1`);
+
+    if (response.data.Status === 'Success') {
+      console.log(response.data);
+      res.send({
+        success: true,
+        message: "OTP sent",
+        data: "otp API is working",
+      });
+    } else {
+
+      throw new Error(response.data.Details || 'Failed to send SMS');
+    }
+
+  } catch (error) {
+    console.error('Error sending OTP:', error.response?.data || error.message);
+
+    let errorMessage = 'Failed to send OTP. Please try again.';
+    if (error.response?.data?.Details) {
+      errorMessage = error.response.data.Details;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+};
+
+
+
+const loginVerifyWithOtp = async (req, res) => {
+
+  const { phone, otp } = req.body;
+
+  const finalOtp = otp.join('');
+
+  try {
+
+
+
+
+    if (verificationStatus !== 'approved') {
+
+      return res.send({
+        message: "Wrong OTP",
+        success: false,
+        data: "Wrong OTP",
+      });
+    }
+
+
+    const userExists = await userUpdatedModel.findOne({ number: phone })
+
+    if (!userExists) {
+      const newUser = new userUpdatedModel({
+        number: phone,
+        loginMethod: "phone",
+        name: '',
+        email: ''
+
+      });
+      await newUser.save();
+    }
+    res.send({ success: true, message: "working", data: "entry created" });
+
+  } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+}
 module.exports = {
   signup,
   login,
@@ -184,4 +307,6 @@ module.exports = {
   selfDetail,
   adminData,
   allAdminData,
+  loginWithOtp,
+  loginVerifyWithOtp
 };

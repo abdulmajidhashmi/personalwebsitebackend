@@ -2,7 +2,7 @@ const appointmentModel = require("../model/AppointmentModel");
 const userModel = require("../model/userModel");
 
 const appointments =async(req,res)=>{
-    const {number,date,time} =req.body;
+    const {number,date,time,type,description} =req.body;
     try{
         const userData = await userModel.findOne({number})
         if(!userData){
@@ -15,6 +15,8 @@ const appointments =async(req,res)=>{
             user:userData._id,
             date:date,
             time:time,
+            type:type,
+            description:description
         })
       await userfullData.save();
       
