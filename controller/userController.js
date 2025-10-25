@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const userUpdatedModel = require("../model/userUpdatedModel");
 const axiosInstance = require('axios');
 const crypto = require('crypto');
-
+const GoogleAuthLibrary = require('google-auth-library');
 const OTP_API_KEY = process.env.TWOFACTOR_API_KEY;
 const OTP_BASE_URL = process.env.TWOFACTOR_BASE_URL;
 const OTP_SENDER_ID = process.env.TWOFACTOR_SENDER_ID;
@@ -189,7 +189,7 @@ const allAdminData = async (req, res) => {
 const loginWithOtp = async (req, res) => {
 
   try {
-    const { number } = req.body;
+    const { phone, type } = req.body;
 
     function generateSecureOTP(length = 6) {
       const max = Math.pow(10, length) - 1;
@@ -207,7 +207,7 @@ const loginWithOtp = async (req, res) => {
       return (min + (randomValue % range)).toString();
     }
 
-    if (!number) {
+    if (!phone) {
       return res.status(400).json({
         success: false,
         message: 'Phone number is required'
@@ -216,7 +216,7 @@ const loginWithOtp = async (req, res) => {
 
     // Validate phone number
     const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(number)) {
+    if (!phoneRegex.test(phone)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid phone number. Enter 10-digit Indian mobile number'
@@ -225,8 +225,12 @@ const loginWithOtp = async (req, res) => {
 
     const otp = generateSecureOTP(6);
 
-    const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${number}/${otp}/OTP1`);
-
+     const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${phone}/${otp}/OTP1`);
+    // const response = {
+    //   data: {
+    //     Status: "Success"
+    //   }
+    // }
     if (response.data.Status === 'Success') {
       console.log(response.data);
       res.send({
@@ -235,18 +239,14 @@ const loginWithOtp = async (req, res) => {
         data: "otp API is working",
       });
     } else {
-
       throw new Error(response.data.Details || 'Failed to send SMS');
     }
-
   } catch (error) {
     console.error('Error sending OTP:', error.response?.data || error.message);
-
     let errorMessage = 'Failed to send OTP. Please try again.';
     if (error.response?.data?.Details) {
       errorMessage = error.response.data.Details;
     }
-
     res.status(500).json({
       success: false,
       message: errorMessage
@@ -258,38 +258,55 @@ const loginWithOtp = async (req, res) => {
 
 const loginVerifyWithOtp = async (req, res) => {
 
-  const { phone, otp } = req.body;
-
-  const finalOtp = otp.join('');
+  const { phone, otp, loginMethod } = req.body;
+ 
 
   try {
+      const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/VERIFY3/${phone}/${otp}`);
+
+    // const response = {
+    //   data: {
+    //     Status: "Success"
+    //   }
+    // }
+    if (response.data.Status === 'Success') {
+  await userUpdatedModel.deleteMany({
+      $or: [{ phone:null }, { email: null }],
+      isProfileComplete: false
+    });
+
+      const user = await userUpdatedModel.findOneAndUpdate( {phone}, { $setOnInsert: {phone,loginMethod } }, { new: true, upsert: true })
 
 
 
+      return res.send({ success: true, message: "User Verified", data: user });
 
-    if (verificationStatus !== 'approved') {
-
+    } else {
       return res.send({
         message: "Wrong OTP",
         success: false,
         data: "Wrong OTP",
       });
     }
+  } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+}
+
+const profileCompletion = async (req, res) => {
+
+  const { name, email, phone ,isProfileComplete} = req.body;
+
+  try {
 
 
-    const userExists = await userUpdatedModel.findOne({ number: phone })
+    const user = await userUpdatedModel.findOneAndUpdate({$or:[{email},{phone}]},{ $set: { name, phone,email ,isProfileComplete} }, { new: true});
 
-    if (!userExists) {
-      const newUser = new userUpdatedModel({
-        number: phone,
-        loginMethod: "phone",
-        name: '',
-        email: ''
-
-      });
-      await newUser.save();
-    }
-    res.send({ success: true, message: "working", data: "entry created" });
+    return res.send({ success: true, message: "user created", data: user })
 
   } catch (err) {
     return res.send({
@@ -298,6 +315,47 @@ const loginVerifyWithOtp = async (req, res) => {
       data: err,
     });
   }
+}
+
+
+const googleLogin = async (req, res) => {
+
+  const { token } = req.body;
+  console.log(token)
+
+  const client = new GoogleAuthLibrary.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
+
+  try {
+      
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    })
+
+    const payload = ticket.getPayload();
+    console.log(payload)
+    const { email, name, picture } = payload;
+    await userUpdatedModel.deleteMany({
+      $or: [{ email:null }, { phone: null }],
+      isProfileComplete: false
+    });
+    const phone = null;
+    const loginMethod = "google";
+    const user = await userUpdatedModel.findOneAndUpdate({email}, { $set: { loginMethod,picture }, $setOnInsert: {  email, name } }, { new: true, upsert: true });
+    return res.send({ success: true, message: "user created", data: user })
+
+  } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+
+
 }
 module.exports = {
   signup,
@@ -308,5 +366,7 @@ module.exports = {
   adminData,
   allAdminData,
   loginWithOtp,
-  loginVerifyWithOtp
+  loginVerifyWithOtp,
+  profileCompletion,
+  googleLogin
 };
