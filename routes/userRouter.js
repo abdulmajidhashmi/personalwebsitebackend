@@ -1,7 +1,7 @@
 const express  =require('express');
 const rateLimit = require('express-rate-limit');
 const userRouter = express.Router();
-const {login,signup,alluser,oneuserdetail, selfDetail, adminData, allAdminData, loginWithOtp, loginVerifyWithOtp, profileCompletion, googleLogin} = require('../controller/userController.js');
+const {login,signup,alluser,oneuserdetail, selfDetail, adminData, allAdminData, loginWithOtp, loginVerifyWithOtp, profileCompletion, googleLogin, userExtractedData, deleteToken} = require('../controller/userController.js');
 const verifyToken = require('../middlewares/verifyToken.js');
 const authenticateToken = require('../middlewares/authentication/authenticateToken.js');
 const verifyAdmin = require('../middlewares/authentication/verifyAdmin.js');
@@ -22,9 +22,11 @@ userRouter.post('/google-login',googleLogin);
 userRouter.get('/all',verifyToken,alluser);
 userRouter.post('/oneuserdetail',verifyToken,oneuserdetail);
 userRouter.get('/check-token',authenticateToken);
+userRouter.get('/fetch-user-data',verifyToken,userExtractedData);
 userRouter.get('/self-detail',verifyToken,selfDetail);
 userRouter.get('/admin-data',verifyToken,adminData);
 userRouter.get('/all-admin-data',verifyToken,verifyAdmin,allAdminData);
+userRouter.get('/delete-token',deleteToken)
 
 
 module.exports = userRouter;

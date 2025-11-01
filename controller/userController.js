@@ -225,7 +225,7 @@ const loginWithOtp = async (req, res) => {
 
     const otp = generateSecureOTP(6);
 
-     const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${phone}/${otp}/OTP1`);
+      const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${phone}/${otp}/OTP1`);
     // const response = {
     //   data: {
     //     Status: "Success"
@@ -259,10 +259,10 @@ const loginWithOtp = async (req, res) => {
 const loginVerifyWithOtp = async (req, res) => {
 
   const { phone, otp, loginMethod } = req.body;
- 
+
 
   try {
-      const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/VERIFY3/${phone}/${otp}`);
+     const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/VERIFY3/${phone}/${otp}`);
 
     // const response = {
     //   data: {
@@ -270,16 +270,25 @@ const loginVerifyWithOtp = async (req, res) => {
     //   }
     // }
     if (response.data.Status === 'Success') {
-  await userUpdatedModel.deleteMany({
-      $or: [{ phone:null }, { email: null }],
-      isProfileComplete: false
-    });
+      await userUpdatedModel.deleteMany({
+        $or: [{ phone: null }, { email: null }],
+        isProfileComplete: false
+      });
 
-      const user = await userUpdatedModel.findOneAndUpdate( {phone}, { $setOnInsert: {phone,loginMethod } }, { new: true, upsert: true })
+      const user = await userUpdatedModel.findOneAndUpdate({ phone }, { $setOnInsert: { phone, loginMethod } }, { new: true, upsert: true })
 
+      if (user.isProfileComplete !== false) {
 
+ const jwtToken = jwt.sign({ phone: user.phone }, process.env.SECRET_KEY, { expiresIn: "30d" });
+         res.cookie("authToken", jwtToken, {
+        maxAge: 2592000000,
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+      }
 
-      return res.send({ success: true, message: "User Verified", data: user });
+      return res.send({ success: true, message: "User Verified", token: null, data: user });
 
     } else {
       return res.send({
@@ -299,14 +308,23 @@ const loginVerifyWithOtp = async (req, res) => {
 
 const profileCompletion = async (req, res) => {
 
-  const { name, email, phone ,isProfileComplete} = req.body;
+  const { name, email, phone, isProfileComplete } = req.body;
 
   try {
 
 
-    const user = await userUpdatedModel.findOneAndUpdate({$or:[{email},{phone}]},{ $set: { name, phone,email ,isProfileComplete} }, { new: true});
+    const user = await userUpdatedModel.findOneAndUpdate({ $or: [{ email }, { phone }] }, { $set: { name, phone, email, isProfileComplete } }, { new: true });
 
-    return res.send({ success: true, message: "user created", data: user })
+    const jwtToken = jwt.sign({ phone: user.phone }, process.env.SECRET_KEY, { expiresIn: "30d" });
+
+          res.cookie("authToken", jwtToken, {
+        maxAge: 2592000000,
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+
+    return res.send({ success: true, message: "User Verified",  data: user })
 
   } catch (err) {
     return res.send({
@@ -328,7 +346,7 @@ const googleLogin = async (req, res) => {
 
 
   try {
-      
+
 
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -339,12 +357,22 @@ const googleLogin = async (req, res) => {
     console.log(payload)
     const { email, name, picture } = payload;
     await userUpdatedModel.deleteMany({
-      $or: [{ email:null }, { phone: null }],
+      $or: [{ email: null }, { phone: null }],
       isProfileComplete: false
     });
     const phone = null;
     const loginMethod = "google";
-    const user = await userUpdatedModel.findOneAndUpdate({email}, { $set: { loginMethod,picture }, $setOnInsert: {  email, name } }, { new: true, upsert: true });
+    const user = await userUpdatedModel.findOneAndUpdate({ email }, { $set: { loginMethod, picture }, $setOnInsert: { email, name } }, { new: true, upsert: true });
+    
+    if(user.profileCompletion!==false){
+      const jwtToken = jwt.sign({ phone: user.phone }, process.env.SECRET_KEY, { expiresIn: "30d" });
+           res.cookie("authToken", jwtToken, {
+        maxAge: 2592000000,
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+    }
     return res.send({ success: true, message: "user created", data: user })
 
   } catch (err) {
@@ -355,7 +383,53 @@ const googleLogin = async (req, res) => {
     });
   }
 
+}
 
+
+const userExtractedData = async(req,res)=>{
+
+  const {phone} =req.cook;
+  
+  try{
+
+   const userData = await userUpdatedModel.findOne({phone});
+console.log(userData)
+   res.send({success:true,message:"user data fetched",data:userData});
+
+
+   } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
+}
+
+
+const deleteToken = async(req,res)=>{
+
+  
+  
+  try{
+
+  
+res.clearCookie("authToken",{
+  httpOnly:true,
+  secure:true,
+  sameSite:"none",
+  path:"/"
+})
+   res.send({success:true,message:"successfully logged out",data:null});
+
+
+   } catch (err) {
+    return res.send({
+      message: "Internal server error",
+      success: false,
+      data: err,
+    });
+  }
 }
 module.exports = {
   signup,
@@ -368,5 +442,7 @@ module.exports = {
   loginWithOtp,
   loginVerifyWithOtp,
   profileCompletion,
-  googleLogin
+  googleLogin,
+  userExtractedData,
+  deleteToken
 };
