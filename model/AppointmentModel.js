@@ -6,7 +6,7 @@ const appointmentSchema = mongoose.Schema({
 
     user:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'user',
+        ref:'newUser',
         required:true,
     },
     date:{
