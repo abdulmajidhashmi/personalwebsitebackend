@@ -65,4 +65,23 @@ const fetchPatientReview = async (req, res) => {
 }
 
 
-module.exports = { appointments, patientReview, fetchPatientReview };
+const getAvailableTimeSlots = async (req, res) => {
+
+    const body=req.body;
+    console.log(body.date);
+    try {
+
+        const AvailableDates = await appointmentModel.find({date:body.date});
+
+
+        return res.send({ message: "data fetched", success: true, data: AvailableDates});
+
+    } catch (err) {
+        return res.send({ message: "Internal server error", success: false, data: err });
+    }
+
+
+}
+
+
+module.exports = { appointments, patientReview, fetchPatientReview ,getAvailableTimeSlots};
