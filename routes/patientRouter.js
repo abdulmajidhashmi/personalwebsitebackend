@@ -1,11 +1,11 @@
 const express = require('express');
 const {appointments, patientReview,fetchPatientReview, getAvailableTimeSlots} = require('../controller/patientController');
-const verifyToken = require('../middlewares/verifyToken.js');
+const verifyUser = require('../middlewares/authorization/verifyUser');
 const patientRouter  =express.Router();
 
 
-patientRouter.post('/appointments',verifyToken,appointments);
-patientRouter.post('/get-available-time-slots',verifyToken,getAvailableTimeSlots);
-patientRouter.post('/review',verifyToken,patientReview)
-patientRouter.get('/review',verifyToken,fetchPatientReview)
+patientRouter.post('/appointments',verifyUser,appointments);
+patientRouter.post('/get-available-time-slots',verifyUser,getAvailableTimeSlots);
+patientRouter.post('/review',verifyUser,patientReview)
+patientRouter.get('/review',verifyUser,fetchPatientReview)
 module.exports = patientRouter;

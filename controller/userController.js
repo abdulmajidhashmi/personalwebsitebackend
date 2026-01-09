@@ -82,28 +82,12 @@ const login = async (req, res) => {
 };
 
 const alluser = async (req, res) => {
-  const body = req.cook;
 
   try {
-    const admindata = await userModel
-      .findOne({ role: "admin" })
-      .select("-password");
-    // console.log(admindata);
-    //this login for checking admin is not secure please change this later
-    if (body.number === admindata.number) {
-      const alluserdata = await userModel
-        .find({ role: "user" })
-        .select("-password");
-      // console.log("lets check",alluserdata);
-
-      return res.send({
-        success: true,
-        message: "data fetched",
-        data: alluserdata,
-      });
-    } else {
-      res.send({ success: true, message: "data fetched", data: admindata });
-    }
+   
+      const alluserdata = await userUpdatedModel.find({ role: "user" }).select("-password");
+      return res.send({success: true,message: "data fetched",data: alluserdata,});
+    
   } catch (err) {
     console.log(err);
     return res.send({
@@ -118,7 +102,7 @@ const oneuserdetail = async (req, res) => {
   const body = req.body;
   console.log(body);
   try {
-    const data = await userModel.findOne({ number: body.number });
+    const data = await userUpdatedModel.findOne({ phone: body.phone });
 
     res.send({ message: "user fetched", success: true, data: data.name });
   } catch (err) {
@@ -225,12 +209,12 @@ const loginWithOtp = async (req, res) => {
 
     const otp = generateSecureOTP(6);
 
-      const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${phone}/${otp}/OTP1`);
-    // const response = {
-    //   data: {
-    //     Status: "Success"
-    //   }
-    // }
+      // const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/${phone}/${otp}/OTP1`);
+    const response = {
+      data: {
+        Status: "Success"
+      }
+    }
     if (response.data.Status === 'Success') {
       console.log(response.data);
       res.send({
@@ -262,13 +246,13 @@ const loginVerifyWithOtp = async (req, res) => {
 
 
   try {
-     const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/VERIFY3/${phone}/${otp}`);
+    //  const response = await axiosInstance.get(`${OTP_BASE_URL}/${OTP_API_KEY}/SMS/VERIFY3/${phone}/${otp}`);
 
-    // const response = {
-    //   data: {
-    //     Status: "Success"
-    //   }
-    // }
+    const response = {
+      data: {
+        Status: "Success"
+      }
+    }
     if (response.data.Status === 'Success') {
       await userUpdatedModel.deleteMany({
         $or: [{ phone: null }, { email: null }],
