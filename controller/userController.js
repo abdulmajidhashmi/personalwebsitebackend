@@ -29,6 +29,7 @@ const signup = async (req, res) => {
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.SECURITY,
+      sameSite: "none", 
       maxAge: 2592000000,
     });
     res.send({
@@ -57,7 +58,7 @@ const login = async (req, res) => {
         maxAge: 2592000000,
         httpOnly: true,
         secure: true,
-        sameSite: "None",
+        sameSite: "none",
       });
       return res.send({
         message: "user found",
@@ -104,7 +105,7 @@ const oneuserdetail = async (req, res) => {
   try {
     const data = await userUpdatedModel.findOne({ phone: body.phone });
 
-    res.send({ message: "user fetched", success: true, data: data.name });
+    res.send({ message: "user fetched", success: true, data:{ name:data.name,_id:data._id }});
   } catch (err) {
     return res.send({
       message: "Internal server error",
@@ -268,7 +269,7 @@ const loginVerifyWithOtp = async (req, res) => {
         maxAge: 2592000000,
         httpOnly: true,
         secure: true,
-        sameSite: "None",
+        sameSite: "none",
       });
       }
 
@@ -305,7 +306,7 @@ const profileCompletion = async (req, res) => {
         maxAge: 2592000000,
         httpOnly: true,
         secure: true,
-        sameSite: "None",
+        sameSite: "none",
       });
 
     return res.send({ success: true, message: "User Verified",  data: user })
@@ -354,7 +355,7 @@ const googleLogin = async (req, res) => {
         maxAge: 2592000000,
         httpOnly: true,
         secure: true,
-        sameSite: "None",
+        sameSite: "none",
       });
     }
     return res.send({ success: true, message: "user created", data: user })
