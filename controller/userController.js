@@ -26,6 +26,7 @@ const signup = async (req, res) => {
     });
     const data = new userModel(body);
     await data.save();
+   
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: true,
