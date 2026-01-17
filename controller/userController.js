@@ -28,7 +28,7 @@ const signup = async (req, res) => {
     await data.save();
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: process.env.SECURITY,
+      secure: true,
       sameSite: "none", 
       maxAge: 2592000000,
     });
