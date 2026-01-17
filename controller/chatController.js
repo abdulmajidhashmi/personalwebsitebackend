@@ -58,4 +58,22 @@ const saveChats = async ({message,userType,userDbId}) => {
     }
 
 }
-module.exports = { updateChats,saveChats };
+
+const getChats = async (req,res) => {
+
+    const {userId} =req.body;
+   
+  
+    try {
+
+       const chatData = await chatModel.findOne({ userPhone: userId })
+   
+        res.send({success:true,message:"chat messages fetched",data:chatData})
+
+    } catch (err) {
+        console.log(err);
+        return res.send({ message: "Internal server error", success: false, data: err });
+    }
+
+}
+module.exports = { updateChats,saveChats,getChats };

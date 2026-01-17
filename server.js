@@ -46,7 +46,7 @@ const io = new Server(server, {
 initChatSocket(io);
 app.use("/user", userRouter);
 app.use("/patient", patientRouter);
-// app.use("/chat", chatRouter);
+app.use("/chat", chatRouter);
 
 app.get("/", (req, res) => {
   res.send("Server is running");

@@ -103,7 +103,7 @@ const oneuserdetail = async (req, res) => {
   const body = req.body;
   console.log(body);
   try {
-    const data = await userUpdatedModel.findOne({ phone: body.phone });
+    const data = await userUpdatedModel.findOne({ _id: body.id });
 
     res.send({ message: "user fetched", success: true, data:{ name:data.name,_id:data._id }});
   } catch (err) {
