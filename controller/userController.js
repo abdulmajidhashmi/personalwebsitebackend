@@ -216,6 +216,7 @@ const loginWithOtp = async (req, res) => {
         Status: "Success"
       }
     }
+    console.log(process.env.SECURITY);
     if (response.data.Status === 'Success') {
       console.log(response.data);
       res.send({
